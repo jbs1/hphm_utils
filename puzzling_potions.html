@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>HPHM Utils</title>
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-aFq/bzH65dt+w6FI2ooMVUpc+21e0SRygnTpmBvdBgSdnuTN7QbdgL+OapgHtvPp" crossorigin="anonymous">
+	<link rel="shortcut icon" href="favicon.ico">
+
+	<script type="text/javascript">
+		var currentNavbarId = "puzzling_potions";
+	</script>
+	<style type="text/css">
+		table#potions-table td {
+			width: 3.25rem;
+			height: 3.25rem;
+		}
+	</style>
+</head>
+<body>
+	<nav class="navbar navbar-expand-sm bg-body-secondary" id="navbar">
+	</nav>
+
+
+	
+	<div class="container text-center">
+		<div class="row pt-5">
+			<div class="col">
+				<table class="table table-bordered w-auto m-auto border-black bg-secondary-subtle" id="potions-table">
+					<tbody>
+						<tr>
+							<td id="11"></td>
+							<td id="12"></td>
+							<td id="13"></td>
+							<td id="14"></td>
+							<td id="15"></td>
+							<td id="16"></td>
+							<td id="17"></td>
+							<td id="18"></td>
+						</tr>
+						<tr>
+							<td id="21"></td>
+							<td id="22"></td>
+							<td id="23"></td>
+							<td id="24"></td>
+							<td id="25"></td>
+							<td id="26"></td>
+							<td id="27"></td>
+							<td id="28"></td>
+						</tr>
+						<tr>
+							<td id="31"></td>
+							<td id="32"></td>
+							<td id="33"></td>
+							<td id="34"></td>
+							<td id="35"></td>
+							<td id="36"></td>
+							<td id="37"></td>
+							<td id="38"></td>
+						</tr>
+						<tr>
+							<td id="41"></td>
+							<td id="42"></td>
+							<td id="43"></td>
+							<td id="44"></td>
+							<td id="45"></td>
+							<td id="46"></td>
+							<td id="47"></td>
+							<td id="48"></td>
+						</tr>
+						<tr>
+							<td id="51"></td>
+							<td id="52"></td>
+							<td id="53"></td>
+							<td id="54"></td>
+							<td id="55"></td>
+							<td id="56"></td>
+							<td id="57"></td>
+							<td id="58"></td>
+						</tr>
+						<tr>
+							<td id="61"></td>
+							<td id="62"></td>
+							<td id="63"></td>
+							<td id="64"></td>
+							<td id="65"></td>
+							<td id="66"></td>
+							<td id="67"></td>
+							<td id="68"></td>
+						</tr>
+						<tr>
+							<td id="71"></td>
+							<td id="72"></td>
+							<td id="73"></td>
+							<td id="74"></td>
+							<td id="75"></td>
+							<td id="76"></td>
+							<td id="77"></td>
+							<td id="78"></td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+		<div class="row py-5">
+			<div class="col">
+				<button type="button" class="btn btn-danger" onclick="prugeSelection ()">Clear Selection!</button>
+			</div>
+		</div>
+	</div>
+
+
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha2/dist/js/bootstrap.bundle.min.js" integrity="sha384-qKXV1j0HvMUeCBQ+QVp7JcfGl760yU08IQ+GpUo5hlbpg51QRiuqHAJz8+BrxE/N" crossorigin="anonymous"></script>
+	<script type="text/javascript">
+		addEventListener("DOMContentLoaded", (event) => {
+			fetch("navbar.html").then((navbarResponse) => {
+				return navbarResponse.text();
+			}).then((navbarHtml) => {
+				let navbarWrapper = document.getElementById("navbar");
+				navbarWrapper.innerHTML = navbarHtml;
+			}).finally(() => {
+				let currentNavbar = document.querySelector("a#"+currentNavbarId);
+				currentNavbar.classList.add("active");
+				currentNavbar.setAttribute("aria-current", "page");
+			});
+		});
+	</script>
+
+	<script type="text/javascript">
+		function prugeSelection () {
+			document.cookie = "selected=; max-age=0; SameSite=Strict; Secure";
+			const tdobject = document.querySelectorAll("table#potions-table td");
+			for (let i = 0; i < tdobject.length; i++) {
+				tdobject[i].classList.toggle("bg-success", false);
+			}
+		}
+
+
+		function toggleIdInCookie (id, inCookie) {
+			if (!document.cookie) {
+				document.cookie = "selected=; max-age=604800; SameSite=Strict; Secure";
+			}
+
+			var currentSelectedArray;
+
+			if (document.cookie.split("; ")[0].split("=")[1] === "") {
+				currentSelectedArray = Array();
+			} else {
+				currentSelectedArray = decodeURIComponent(document.cookie.split("; ")[0].split("=")[1]).split(",");
+			}
+
+			const idIndex = currentSelectedArray.indexOf(id);
+
+			if (inCookie && idIndex <= -1) { //if id should be in cookie but is not
+				currentSelectedArray.push(id);
+			} else if (!inCookie && idIndex >= 0) { //if id should not be in cookie but is
+				currentSelectedArray.splice(idIndex,1);
+			}
+
+			document.cookie = "selected=" + encodeURIComponent(currentSelectedArray.join(",")) + "; max-age=604800; SameSite=Strict; Secure";
+		}
+
+		function toggleTDselect (obj) {
+			let hasClass = obj.classList.toggle("bg-success");
+			toggleIdInCookie(obj.id, hasClass);
+		}
+
+		const tdobject = document.querySelectorAll("table#potions-table td");
+		for (let i = 0; i < tdobject.length; i++) {
+			tdobject[i].addEventListener(
+			"click",
+			function (event) {
+				toggleTDselect(event.target);
+			}, false);
+		}
+	</script>
+
+	<script type="text/javascript">
+		addEventListener("DOMContentLoaded", (event) => {
+			let currentSelected = decodeURIComponent(document.cookie.split("; ")[0].split("=")[1]).split(",");
+			document.querySelectorAll("table#potions-table td");
+			for (let i = 0; i < tdobject.length; i++) {
+				if (currentSelected.indexOf(tdobject[i].id) >= 0) {
+					tdobject[i].classList.toggle("bg-success", true);
+				};
+			}
+		});
+	</script>
+
+</body>
+</html>
