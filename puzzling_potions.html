@@ -355,9 +355,16 @@
 			</div>
 		</div>
 
+		<div class="row pb-3">
+			<div class="col">
+				<a href="https://drive.google.com/file/d/1sYZ4ajDft48MqegFSunUlAaVfRYQxqSk/view" class="link-primary" target="_blank">Potion Ingredients Grid</a>
+			</div>
+		</div>
+
 		<div class="row pb-5">
 			<div class="col">
-				<a href="https://drive.google.com/file/d/1sYZ4ajDft48MqegFSunUlAaVfRYQxqSk/view" class="link-success" target="_blank">Potion Ingredients Grid</a>
+				You can now cycle between <span class="text-warning fw-bold">yellow</span> and <span class="text-success fw-bold">green</span>.<br>
+				<span class="text-warning fw-bold">Yellow</span> stands for <span class="fw-bolder text-decoration-underline">unused</span> ingredients and <span class="text-success fw-bold">green</span> stands for <span class="fw-bolder text-decoration-underline">used</span> ingredients.
 			</div>
 		</div>
 
@@ -388,40 +395,91 @@
 	<script type="text/javascript">
 		function prugeSelection () {
 			document.cookie = "selected=; max-age=0; SameSite=Strict; Secure";
+			document.cookie = "selectedNeeded=; max-age=0; SameSite=Strict; Secure";
 			const tdobject = document.querySelectorAll('table[id^="potions-table-"] td');
 			for (let i = 0; i < tdobject.length; i++) {
+				tdobject[i].classList.toggle("bg-warning", false);
 				tdobject[i].classList.toggle("bg-success", false);
 			}
 		}
 
 
-		function toggleIdInCookie (id, inCookie) {
+		function toggleIdInCookie (id, inCookieSelected, inCookieSelectedNeeded) {
 			if (!document.cookie) {
 				document.cookie = "selected=; max-age=604800; SameSite=Strict; Secure";
+				document.cookie = "selectedNeeded=; max-age=604800; SameSite=Strict; Secure";
+			}
+			const cookieArray = document.cookie.split(";");
+			var selectedArray;
+			var selectedNeededArray;
+
+
+			for (let i = 0; i < cookieArray.length; i++) {
+				let currentCookie = cookieArray[i].split("=");
+				if (currentCookie[0].trim() === "selected") {
+					selectedArray = decodeURIComponent(currentCookie[1].trim()).split(",");
+					if (selectedArray.length === 1 && selectedArray[0] == "") {
+						selectedArray = Array();
+					}
+				} else if (currentCookie[0].trim() === "selectedNeeded") {
+					selectedNeededArray = decodeURIComponent(currentCookie[1].trim()).split(",");
+					if (selectedNeededArray.length === 1 && selectedNeededArray[0] == "") {
+						selectedNeededArray = Array();
+					}
+				}
 			}
 
-			var currentSelectedArray;
-
-			if (document.cookie.split("; ")[0].split("=")[1] === "") {
-				currentSelectedArray = Array();
-			} else {
-				currentSelectedArray = decodeURIComponent(document.cookie.split("; ")[0].split("=")[1]).split(",");
+			//needed to catch incomplete cookies and legacy cookies from before there were two arrays
+			if(selectedArray === undefined) {
+				selectedArray = Array();
+			}
+			if(selectedNeededArray ===  undefined) {
+				selectedNeededArray = Array();
 			}
 
-			const idIndex = currentSelectedArray.indexOf(id);
+			const idIndexSelected = selectedArray.indexOf(id);
+			const idIndexSelectedNeeded = selectedNeededArray.indexOf(id);
 
-			if (inCookie && idIndex <= -1) { //if id should be in cookie but is not
-				currentSelectedArray.push(id);
-			} else if (!inCookie && idIndex >= 0) { //if id should not be in cookie but is
-				currentSelectedArray.splice(idIndex,1);
+
+			if (inCookieSelected && idIndexSelected <= -1) { //if id should be in cookieSelected but is not
+				selectedArray.push(id);
+			} else if (!inCookieSelected && idIndexSelected >= 0) { //if id should not be in cookieSelected but is
+				selectedArray.splice(idIndexSelected,1);
 			}
 
-			document.cookie = "selected=" + encodeURIComponent(currentSelectedArray.join(",")) + "; max-age=604800; SameSite=Strict; Secure";
+			if (inCookieSelectedNeeded && idIndexSelectedNeeded <= -1) { //if id should be in cookieSelectedNeeded but is not
+				selectedNeededArray.push(id);
+			} else if (!inCookieSelectedNeeded && idIndexSelectedNeeded >= 0) { //if id should not be in cookieSelectedNeeded but is
+				selectedNeededArray.splice(idIndexSelectedNeeded,1);
+			}
+
+
+			document.cookie = "selected=" + encodeURIComponent(selectedArray.join(",")) + "; max-age=604800; SameSite=Strict; Secure";
+			document.cookie = "selectedNeeded=" + encodeURIComponent(selectedNeededArray.join(",")) + "; max-age=604800; SameSite=Strict; Secure";
 		}
 
-		function toggleTDselect (obj) {
-			let hasClass = obj.classList.toggle("bg-success");
-			toggleIdInCookie(obj.id, hasClass);
+		function cycleTdSelect (obj) {
+			const classes = obj.classList;
+			const warn = classes.contains("bg-warning");
+			const succ = classes.contains("bg-success");
+
+			if (!warn && !succ) {
+				let warnToggle = classes.toggle("bg-warning", true);
+				let succToggle = classes.toggle("bg-success", false);
+				toggleIdInCookie(obj.id, warnToggle, succToggle);
+			} else if (warn && !succ) {
+				let warnToggle = classes.toggle("bg-warning", false);
+				let succToggle = classes.toggle("bg-success", true);
+				toggleIdInCookie(obj.id, warnToggle, succToggle);
+			} else if (!warn && succ) {
+				let warnToggle = classes.toggle("bg-warning", false);
+				let succToggle = classes.toggle("bg-success", false);
+				toggleIdInCookie(obj.id, warnToggle, succToggle);
+			} else {
+				let warnToggle = classes.toggle("bg-warning", false);
+				let succToggle = classes.toggle("bg-success", false);
+				toggleIdInCookie(obj.id, warnToggle, succToggle);
+			}
 		}
 
 		const tdobject = document.querySelectorAll('table[id^="potions-table-"] td');
@@ -429,17 +487,40 @@
 			tdobject[i].addEventListener(
 			"click",
 			function (event) {
-				toggleTDselect(event.target);
+				cycleTdSelect(event.target);
 			}, false);
 		}
 	</script>
 
 	<script type="text/javascript">
 		addEventListener("DOMContentLoaded", (event) => {
-			let currentSelected = decodeURIComponent(document.cookie.split("; ")[0].split("=")[1]).split(",");
+			const cookieArray = document.cookie.split(";");
+			var selectedArray;
+			var selectedNeededArray;
+
+			for (let i = 0; i < cookieArray.length; i++) {
+				let currentCookie = cookieArray[i].split("=");
+				if (currentCookie[0].trim() === "selected") {
+					selectedArray = decodeURIComponent(currentCookie[1].trim()).split(",");
+
+				} else if (currentCookie[0].trim() === "selectedNeeded") {
+					selectedNeededArray = decodeURIComponent(currentCookie[1].trim()).split(",");
+				}
+			}
+
+			//needed to catch incomplete cookies and legacy cookies from before there were two arrays
+			if(selectedArray === undefined) {
+				selectedArray = Array();
+			}
+			if(selectedNeededArray ===  undefined) {
+				selectedNeededArray = Array();
+			}
+
 			const tdobject = document.querySelectorAll('table[id^="potions-table-"] td');
 			for (let i = 0; i < tdobject.length; i++) {
-				if (currentSelected.indexOf(tdobject[i].id) >= 0) {
+				if (selectedArray.indexOf(tdobject[i].id) >= 0) {
+					tdobject[i].classList.toggle("bg-warning", true);
+				} else if (selectedNeededArray.indexOf(tdobject[i].id) >= 0) {
 					tdobject[i].classList.toggle("bg-success", true);
 				};
 			}
